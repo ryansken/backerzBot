@@ -117,16 +117,26 @@ async def on_chat_member(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             f"✅ Referral confirmed! {handle_of(joined)} joined.\nTotal: {d['users'][referrer_id]['score']}")
     except Exception:
         pass
-    # admin log (tells you who referred whom + the referrer’s total)
-    try:
-        uname = d["users"].get(referrer_id, {}).get("username", "")
-        ref_handle = f"@{uname}" if uname else referrer_id
-        await ctx.bot.send_message(
-            ADMIN_ID,
-            f"Ref confirmed: {handle_of(joined)} via {ref_handle} — total {d['users'][referrer_id]['score']}"
-        )
-    except Exception:
-        pass
+    # admin log (clean usernames or clickable mentions, no raw IDs)
+try:
+    ref_chat = await ctx.bot.get_chat(int(referrer_id))
+    joined_chat = joined  # already have user
+
+    def mention(uid, chat):
+        if getattr(chat, "username", None):
+            return f"@{chat.username}"
+        label = getattr(chat, "first_name", None) or "user"
+        return f'<a href="tg://user?id={uid}">{label}</a>'
+
+    await ctx.bot.send_message(
+        ADMIN_ID,
+        f"Ref confirmed: {mention(joined.id, joined_chat)} via {mention(int(referrer_id), ref_chat)} — total {d['users'][referrer_id]['score']}",
+        parse_mode="HTML",
+        disable_web_page_preview=True,
+    )
+except Exception:
+    pass
+
 
 
 
@@ -168,3 +178,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
