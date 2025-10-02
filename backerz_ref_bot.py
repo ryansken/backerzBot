@@ -162,7 +162,7 @@ async def cmd_ping(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 # ---- stable launcher ----
 def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
-    app.add_handler(CommandHandler("ping", cmd_ping))  # <-- added
+    app.add_handler(CommandHandler("ping", cmd_ping))
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(CallbackQueryHandler(on_verify, pattern="^verify$"))
     app.add_handler(ChatMemberHandler(on_chat_member, ChatMemberHandler.CHAT_MEMBER))
@@ -170,8 +170,17 @@ def main():
     app.add_handler(CommandHandler("bind", cmd_bind))
     app.add_handler(CommandHandler("my", cmd_my))
     app.add_handler(CommandHandler("top", cmd_top))
+
+    async def _post_init(app):
+        me = await app.bot.get_me()
+        print(f"RUNNING_AS=@{me.username} ID={me.id}")
+
+    app.post_init(_post_init)
+
     print("Bot running…")
     app.run_polling(allowed_updates=["message","chat_member","my_chat_member","callback_query"])
+
+
 
 
 
