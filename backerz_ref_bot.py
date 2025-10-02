@@ -6,10 +6,9 @@ from telegram.ext import (
 )
 
 # ===== EDIT THESE TWO LINES (keep the quotes) =====
-BOT_TOKEN = "8029947533:AAEeoYMeOxm7OBL3j05UahDfp-FotFhu-84"
+BOT_TOKEN = "YOUR_TOKEN_HERE"
 JOIN_LINK = "https://t.me/+HnzqYOSD66E3Y2M9"
 ADMIN_ID = 5141258118
-
 # ==================================================
 
 DATA_FILE = "ref_data.json"
@@ -72,7 +71,6 @@ async def cmd_bind(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         d["group_id"] = update.effective_chat.id
         save(d)
         msg = await update.message.reply_text(f"Group bound ✅ (id: {d['group_id']})")
-        # Try to hide the setup chatter
         try:
             await ctx.bot.delete_message(update.effective_chat.id, msg.message_id)
             await ctx.bot.delete_message(update.effective_chat.id, update.message.message_id)
@@ -105,40 +103,37 @@ async def on_chat_member(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     if not referrer_id:
         return
 
-    # award
     d["users"].setdefault(referrer_id, {"username": "", "score": 0})
     d["users"][referrer_id]["score"] = int(d["users"][referrer_id].get("score", 0)) + 1
     d["confirmed"].append({"referrer": int(referrer_id), "referee": int(referee_id), "ts": int(time.time())})
     save(d)
 
-    # notify
+    # notify referrer
     try:
         await ctx.bot.send_message(int(referrer_id),
             f"✅ Referral confirmed! {handle_of(joined)} joined.\nTotal: {d['users'][referrer_id]['score']}")
     except Exception:
         pass
-    # admin log (clean usernames or clickable mentions, no raw IDs)
-try:
-    ref_chat = await ctx.bot.get_chat(int(referrer_id))
-    joined_chat = joined  # already have user
 
-    def mention(uid, chat):
-        if getattr(chat, "username", None):
-            return f"@{chat.username}"
-        label = getattr(chat, "first_name", None) or "user"
-        return f'<a href="tg://user?id={uid}">{label}</a>'
+    # admin log (indented properly inside this function)
+    try:
+        ref_chat = await ctx.bot.get_chat(int(referrer_id))
+        joined_chat = joined
 
-    await ctx.bot.send_message(
-        ADMIN_ID,
-        f"Ref confirmed: {mention(joined.id, joined_chat)} via {mention(int(referrer_id), ref_chat)} — total {d['users'][referrer_id]['score']}",
-        parse_mode="HTML",
-        disable_web_page_preview=True,
-    )
-except Exception:
-    pass
+        def mention(uid, chat):
+            if getattr(chat, "username", None):
+                return f"@{chat.username}"
+            label = getattr(chat, "first_name", None) or "user"
+            return f'<a href="tg://user?id={uid}">{label}</a>'
 
-
-
+        await ctx.bot.send_message(
+            ADMIN_ID,
+            f"Ref confirmed: {mention(joined.id, joined_chat)} via {mention(int(referrer_id), ref_chat)} — total {d['users'][referrer_id]['score']}",
+            parse_mode="HTML",
+            disable_web_page_preview=True,
+        )
+    except Exception:
+        pass
 
 # Show your score
 async def cmd_my(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
@@ -175,7 +170,5 @@ def main():
     print("Bot running…")
     app.run_polling(allowed_updates=["message","chat_member","my_chat_member","callback_query"])
 
-
 if __name__ == "__main__":
     main()
-
