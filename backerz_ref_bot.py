@@ -6,7 +6,7 @@ from telegram.ext import (
 )
 
 # ===== EDIT THESE TWO LINES (keep the quotes) =====
-BOT_TOKEN = "YOUR_TOKEN_HERE"
+BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 JOIN_LINK = "https://t.me/+HnzqYOSD66E3Y2M9"
 ADMIN_ID = 5141258118
 # ==================================================
@@ -172,3 +172,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
