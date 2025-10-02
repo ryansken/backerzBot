@@ -156,10 +156,13 @@ async def cmd_top(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         handle = f"@{uname}" if uname else f"user {uid}"
         lines.append(f"{i}. {handle} — {score}")
     await update.message.reply_text("🏆 Leaderboard\n" + "\n".join(lines))
+async def cmd_ping(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("pong")
 
 # ---- stable launcher ----
 def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
+    app.add_handler(CommandHandler("ping", cmd_ping))  # <-- added
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(CallbackQueryHandler(on_verify, pattern="^verify$"))
     app.add_handler(ChatMemberHandler(on_chat_member, ChatMemberHandler.CHAT_MEMBER))
@@ -170,7 +173,6 @@ def main():
     print("Bot running…")
     app.run_polling(allowed_updates=["message","chat_member","my_chat_member","callback_query"])
 
-if __name__ == "__main__":
-    main()
+
 
 
